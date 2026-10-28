@@ -1620,6 +1620,31 @@ body[data-screen="chat"] #screen-chat{display:flex}
 #screen-welcome .greet{margin-bottom:10px;font-size:clamp(24px,2.9vw,34px);gap:12px}
 #screen-welcome .greet .claude-mark{width:38px;height:38px}
 @media(min-width:1000px){#screen-welcome .greet{margin-left:-150px;margin-right:-150px}}
+/* ===== CHOOSER SPACING ===== */
+#screen-choose .greet{font-size:clamp(26px,3.3vw,40px);line-height:1.15;margin:0 0 18px}
+#screen-choose .choose-q{font-size:clamp(20px,2.3vw,26px);line-height:1.3;margin:0 0 14px}
+#screen-choose .choose-sub{font-size:var(--fs-md);line-height:1.6;color:#c8c8c8;margin:0 0 38px}
+
+/* ===== ONE BUTTON SYSTEM: same shape, size and type for every action button ===== */
+:root{--btn-h:38px;--btn-r:10px;--btn-orange:#d4553a;--btn-orange-h:#c24a31;--btn-grey:#585858;--btn-grey-h:#646464;--btn-line:#6c6c6c}
+html body :is(button.dark,#w-open,#w-load,#ai-send,#taskq-go,#si,button.alt:not(.side-actions *),button.pill,.ai-btn,#w-local,.report-tools button,.tbl-tools button,.ai-starters button,#rescore,#so,#taskq-showtable){
+  box-sizing:border-box;min-height:var(--btn-h);height:auto;padding:0 16px;border-radius:var(--btn-r);
+  border:1px solid var(--btn-line);background:var(--btn-grey);color:#f0f0f0;
+  font:600 13px/1.25 var(--sans);letter-spacing:0;text-transform:none;text-align:center;
+  display:inline-flex;align-items:center;justify-content:center;gap:8px;cursor:pointer;box-shadow:none;
+  transition:background .15s ease,border-color .15s ease,transform .15s ease}
+html body :is(button.dark,#w-open,#w-load,#ai-send,#taskq-go,#si){background:var(--btn-orange);border-color:var(--btn-orange);color:#fff}
+html body :is(button.dark,#w-open,#w-load,#ai-send,#taskq-go,#si):hover:not(:disabled){background:var(--btn-orange-h);border-color:var(--btn-orange-h)}
+html body :is(button.alt:not(.side-actions *),button.pill,.ai-btn,#w-local,.report-tools button,.tbl-tools button,.ai-starters button,#rescore,#so,#taskq-showtable):hover:not(:disabled){background:var(--btn-grey-h);border-color:var(--btn-orange);color:#fff}
+html body :is(button.alt.sm,.tbl-tools button,#so,#taskq-showtable){min-height:32px;padding:0 12px;font-size:12px}
+html body .side-actions button.alt,html body .side-actions button{border-radius:var(--btn-r);font:600 13px/1.25 var(--sans);border:1px solid var(--btn-line);background:var(--btn-grey);color:#f0f0f0;min-height:var(--btn-h)}
+html body .side-actions button:hover{background:var(--btn-grey-h);border-color:var(--btn-orange)}
+html body :is(button.dark,#w-open,#w-load,#ai-send,#taskq-go,#si,button.alt,button.pill,.ai-btn,#w-local,.report-tools button,.tbl-tools button,.ai-starters button,#rescore,#so,#taskq-showtable,.side-actions button):disabled{opacity:.5;cursor:not-allowed}
+html body :is(button.dark,#w-open,#w-load,#ai-send,#taskq-go,#si,button.alt,button.pill,.ai-btn,#w-local,.report-tools button,.tbl-tools button,.ai-starters button,#rescore,#so,#taskq-showtable,.side-actions button):focus-visible{outline:2px solid #f29a78;outline-offset:2px}
+html body .ai-starters button{text-align:left;justify-content:flex-start;padding:8px 14px}
+html body .ai-composer #ai-send{align-self:flex-end}
+html body #w-open.big{font-size:13px;padding:0 16px}
+
 /* ===== CONNECTION LOG ===== */
 #w-steps{display:none!important}
 #w-log.cmd-body{max-height:min(52vh,460px)}
@@ -4505,8 +4530,7 @@ function renderWelcomeHeader(){
   const name=(CURRENT_USER&&(CURRENT_USER.fullName||CURRENT_USER.username))||'';
   $('w-name').textContent=name;
   const ai=(typeof WORKFLOW!=='undefined'&&WORKFLOW==='ai');
-  $('w-lead').textContent=ai?'Welcome to the AI Analyst!':'Welcome to the Standardised Planner!';
-  $('w-sub').textContent=ai?'Load the four ArcGIS layers, then ask Claude about them in plain language.':'Load the four ArcGIS layers to generate priority-scored tasks, dependencies and a schedule.';
+  welcomeWords(ai?'Welcome to the AI Analyst!':'Welcome to the Standardised Planner!');
   const bits=[];if(CURRENT_USER&&CURRENT_USER.role)bits.push(roleLabel(CURRENT_USER.role));if(CURRENT_USER&&CURRENT_USER.email)bits.push(CURRENT_USER.email);
   $('w-detail').textContent=bits.join(' \u00B7 ')||'Signed in to the IMSMA portal.';
   $('w-portal').textContent='Signed in to '+urlShort(portalFromConfig());
@@ -6929,6 +6953,13 @@ function ensureTableExports(){
   run();
 })();
 
+/* ===== WELCOME COPY (plain text, no effects) ===== */
+function welcomeWords(text){const el=$('w-lead');if(el)el.textContent=text;}
+function welcomeIntro(){
+  const ai=WORKFLOW==='ai';
+  welcomeWords(ai?'Welcome to the AI Analyst!':'Welcome to the Standardised Planner!');
+  $('w-sub').textContent=ai?'Four ArcGIS layers, one conversation. Load them, then ask Claude anything about your data.':'Turn four ArcGIS layers into a ranked, sequenced and scheduled clearance plan in minutes.';
+}
 /* ===== TWO WORKFLOWS: PLANNER OR AI ANALYST ===== */
 let WORKFLOW='planner';
 const CHAT={msgs:[],busy:false,abort:null,ctx:''};
@@ -6943,7 +6974,7 @@ function openChoose(){
 function pickWorkflow(w){
   WORKFLOW=w;
   if(MODEL){if(w==='ai')openAnalyst();else openPlanner();return;}
-  renderWelcomeHeader();showScreen('welcome');
+  renderWelcomeHeader();showScreen('welcome');welcomeIntro();
 }
 function openAnalyst(){
   if(!MODEL){pickWorkflow('ai');return;}
