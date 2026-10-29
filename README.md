@@ -1,4 +1,4 @@
-# Urban Clearance Planner
+# Operating in Urban Aread Tasks Planner
 
 Browser-based planning tool for clearance operations in urban areas. Reads four ArcGIS layers (buildings, rubble, explosive ordnance, roads), scores every clearance task, and produces a dependency-aware schedule.
 
